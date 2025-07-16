@@ -1,14 +1,16 @@
--- 🌟 QUÉT MAP + HIỆN KẾT QUẢ SCREEN GUI + COPY
+-- 🌟 QUÉT MAP + HIỆN KẾT QUẢ SCREEN GUI + COPY (FIX SolaraV3)
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
+local coreGui = game:GetService("CoreGui")
 local player = players.LocalPlayer
 
--- 🖥️ Tạo GUI trong PlayerGui
+-- 🖥️ Tạo GUI trong CoreGui (để SolaraV3 không chặn)
 local gui = Instance.new("ScreenGui")
 gui.Name = "ScanResultGUI"
 gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+gui.IgnoreGuiInset = true
+pcall(function() gui.Parent = coreGui end)
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 500, 0, 400)
@@ -108,7 +110,7 @@ for _, obj in pairs(workspace:GetDescendants()) do
     end
 end
 
-addLine("\n✅ XONG! Copy các giá trị trên vào script farm.", Color3.fromRGB(0, 255, 127))
+addLine("\n✅ XONG! Ấn COPY để sao chép toàn bộ kết quả.", Color3.fromRGB(0, 255, 127))
 
 -- 📋 Nút COPY
 local copyBtn = Instance.new("TextButton", frame)
@@ -122,8 +124,10 @@ copyBtn.TextSize = 14
 Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(0, 5)
 
 copyBtn.MouseButton1Click:Connect(function()
-    setclipboard(clipboardContent)
-    copyBtn.Text = "✅ ĐÃ COPY!"
+    pcall(function()
+        setclipboard(clipboardContent)
+        copyBtn.Text = "✅ ĐÃ COPY!"
+    end)
     wait(2)
     copyBtn.Text = "📋 COPY TO CLIPBOARD"
 end)

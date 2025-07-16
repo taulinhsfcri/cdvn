@@ -1,12 +1,14 @@
--- 🌟 QUÉT MAP + HIỆN KẾT QUẢ SCREEN GUI 🌟
+-- 🌟 QUÉT MAP + HIỆN KẾT QUẢ SCREEN GUI (SolaraV3 compatible)
 local players = game:GetService("Players")
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local workspace = game:GetService("Workspace")
 local player = players.LocalPlayer
 
--- 🖥️ Tạo GUI
-local gui = Instance.new("ScreenGui", game.CoreGui)
+-- 🖥️ Tạo GUI trong PlayerGui thay vì CoreGui
+local gui = Instance.new("ScreenGui")
 gui.Name = "ScanResultGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 500, 0, 400)
@@ -37,7 +39,6 @@ local layout = Instance.new("UIListLayout", scroll)
 layout.Padding = UDim.new(0, 5)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 
--- 📌 Hàm in kết quả ra GUI
 local function addLine(text, color)
     local label = Instance.new("TextLabel", scroll)
     label.Size = UDim2.new(1, -10, 0, 20)
@@ -49,14 +50,14 @@ local function addLine(text, color)
     label.TextXAlignment = Enum.TextXAlignment.Left
 end
 
--- 🌐 Quét vị trí hiện tại
+-- 📍 Vị trí hiện tại
 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
     local pos = player.Character.HumanoidRootPart.Position
     addLine("📍 Vị trí hiện tại:", Color3.fromRGB(0, 255, 255))
-    addLine("Vector3.new(" .. math.floor(pos.X) .. ", " .. math.floor(pos.Y) .. ", " .. math.floor(pos.Z) .. ")", Color3.fromRGB(150, 255, 150))
+    addLine("Vector3.new("..math.floor(pos.X)..","..math.floor(pos.Y)..","..math.floor(pos.Z)..")", Color3.fromRGB(150, 255, 150))
 end
 
--- 🔥 Quét RemoteEvent
+-- 🔥 RemoteEvent & RemoteFunction
 addLine("\n📡 REMOTEEVENT / FUNCTION:", Color3.fromRGB(255, 200, 0))
 for _, v in pairs(replicatedStorage:GetDescendants()) do
     if v:IsA("RemoteEvent") then
@@ -66,40 +67,40 @@ for _, v in pairs(replicatedStorage:GetDescendants()) do
     end
 end
 
--- 🌲 Quét cây chặt gỗ
+-- 🌲 Cây chặt gỗ
 addLine("\n🌳 CÂY CHẶT GỖ:", Color3.fromRGB(0, 255, 0))
 for _, obj in pairs(workspace:GetDescendants()) do
     if (obj:IsA("Part") or obj:IsA("MeshPart")) and (obj.Name:lower():find("tree") or obj.Name:lower():find("wood")) then
         local p = obj.Position
         addLine("🌲 "..obj:GetFullName(), Color3.fromRGB(0, 255, 0))
-        addLine("  Vector3.new(" .. math.floor(p.X) .. ", " .. math.floor(p.Y) .. ", " .. math.floor(p.Z) .. ")", Color3.fromRGB(150, 255, 150))
+        addLine("  Vector3.new("..math.floor(p.X)..","..math.floor(p.Y)..","..math.floor(p.Z)..")", Color3.fromRGB(150, 255, 150))
     elseif obj:IsA("Model") and obj.Name:lower():find("tree") and obj:FindFirstChild("HumanoidRootPart") then
         local p = obj.HumanoidRootPart.Position
         addLine("🌲 "..obj:GetFullName(), Color3.fromRGB(0, 255, 0))
-        addLine("  Vector3.new(" .. math.floor(p.X) .. ", " .. math.floor(p.Y) .. ", " .. math.floor(p.Z) .. ")", Color3.fromRGB(150, 255, 150))
+        addLine("  Vector3.new("..math.floor(p.X)..","..math.floor(p.Y)..","..math.floor(p.Z)..")", Color3.fromRGB(150, 255, 150))
     end
 end
 
--- 🪓 Quét shop/rìu
+-- 🪓 Shop/Rìu
 addLine("\n🪓 SHOP HOẶC RÌU:", Color3.fromRGB(0, 200, 255))
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj.Name:lower():find("shop") or obj.Name:lower():find("axe") then
         local p = obj.Position or (obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and obj.HumanoidRootPart.Position)
         if p then
             addLine("🛒 "..obj:GetFullName(), Color3.fromRGB(0, 200, 255))
-            addLine("  Vector3.new(" .. math.floor(p.X) .. ", " .. math.floor(p.Y) .. ", " .. math.floor(p.Z) .. ")", Color3.fromRGB(150, 255, 150))
+            addLine("  Vector3.new("..math.floor(p.X)..","..math.floor(p.Y)..","..math.floor(p.Z)..")", Color3.fromRGB(150, 255, 150))
         end
     end
 end
 
--- 💰 Quét nơi bán gỗ
+-- 💰 Nơi bán gỗ
 addLine("\n💰 NƠI BÁN GỖ:", Color3.fromRGB(255, 100, 100))
 for _, obj in pairs(workspace:GetDescendants()) do
     if obj.Name:lower():find("sell") or obj.Name:lower():find("cash") then
         local p = obj.Position or (obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") and obj.HumanoidRootPart.Position)
         if p then
             addLine("💰 "..obj:GetFullName(), Color3.fromRGB(255, 100, 100))
-            addLine("  Vector3.new(" .. math.floor(p.X) .. ", " .. math.floor(p.Y) .. ", " .. math.floor(p.Z) .. ")", Color3.fromRGB(150, 255, 150))
+            addLine("  Vector3.new("..math.floor(p.X)..","..math.floor(p.Y)..","..math.floor(p.Z)..")", Color3.fromRGB(150, 255, 150))
         end
     end
 end

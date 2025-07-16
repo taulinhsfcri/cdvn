@@ -1,6 +1,8 @@
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local virtualInput = game:GetService("VirtualInputManager")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
 local player = players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hrp = character:WaitForChild("HumanoidRootPart")
@@ -9,8 +11,14 @@ local radius = 3
 local angle = 0
 local lastPress = tick()
 local pressCooldown = 0.5 -- 0.5 giây spam F
+local inventoryFull = false
 
 local password = "SCRIPT CDVN FRAM"
+
+-- 📍 Tọa độ cần thiết (thay đổi theo map)
+local woodAreaPos = Vector3.new(100, 10, -50) -- khu chặt gỗ
+local sellAreaPos = Vector3.new(150, 10, -30) -- nơi bán gỗ
+local shopAreaPos = Vector3.new(200, 10, -70) -- nơi mua rìu
 
 -- 🌳 Tìm object gần nhất
 local function getClosestObject()
@@ -21,14 +29,40 @@ local function getClosestObject()
             if dist < minDist then
                 closestObj, minDist = obj, dist
             end
-        elseif obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") then
-            local dist = (obj.HumanoidRootPart.Position - hrp.Position).Magnitude
-            if dist < minDist then
-                closestObj, minDist = obj.HumanoidRootPart, dist
-            end
         end
     end
     return closestObj
+end
+
+-- 🪓 Lấy rìu ra để chặt
+local function equipAxe()
+    for _, item in pairs(player.Backpack:GetChildren()) do
+        if item:IsA("Tool") and item.Name:lower():find("axe") then
+            item.Parent = character
+            return true
+        end
+    end
+    return false
+end
+
+-- 🛒 Mua rìu mới nếu không có
+local function buyAxe()
+    hrp.CFrame = CFrame.new(shopAreaPos)
+    wait(1)
+    -- 🔥 Gửi sự kiện mua rìu (thay đổi tùy game)
+    if replicatedStorage:FindFirstChild("ShopEvent") then
+        replicatedStorage.ShopEvent:FireServer("Axe")
+    end
+end
+
+-- 💰 Bán gỗ
+local function sellWood()
+    hrp.CFrame = CFrame.new(sellAreaPos)
+    wait(1)
+    -- 🔥 Gửi sự kiện bán gỗ (thay đổi tùy game)
+    if replicatedStorage:FindFirstChild("SellEvent") then
+        replicatedStorage.SellEvent:FireServer()
+    end
 end
 
 -- 🔥 Spam phím F
@@ -40,15 +74,36 @@ local function pressF()
     end
 end
 
--- 🔁 Vòng lặp farm gỗ
+-- 🔁 Vòng lặp auto farm
 runService.RenderStepped:Connect(function()
     if farming then
+        -- 📦 Check full túi
+        if player:FindFirstChild("BackpackFull") and player.BackpackFull.Value == true then
+            inventoryFull = true
+        end
+
+        if inventoryFull then
+            sellWood()
+            inventoryFull = false
+        end
+
+        -- 🪓 Đảm bảo có rìu
+        if not equipAxe() then
+            buyAxe()
+            wait(1)
+            equipAxe()
+        end
+
+        -- 🌳 Đến khu chặt gỗ
+        hrp.CFrame = CFrame.new(woodAreaPos)
+
+        -- 🌲 Tìm cây và chặt
         local target = getClosestObject()
         if target then
             angle += 0.04
             local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius
             local targetPos = target.Position + offset
-            hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(targetPos), 0.3)
+            hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(targetPos, target.Position), 0.3)
             pressF()
         end
     end
@@ -105,7 +160,7 @@ mainFrame.Visible = false
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
 local mainTitle = Instance.new("TextLabel", mainFrame)
-mainTitle.Text = "🌳 AUTO FARM GỖ"
+mainTitle.Text = "🌳 AUTO FARM GỖ FULL"
 mainTitle.Size = UDim2.new(1, 0, 0, 40)
 mainTitle.BackgroundTransparency = 1
 mainTitle.Font = Enum.Font.GothamBold
